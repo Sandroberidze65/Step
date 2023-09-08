@@ -44,7 +44,7 @@ public class UserRepository : IUserRepository
         };
 
         return await PagedList<MemberDto>.CreateAsync(query.AsNoTracking().ProjectTo<MemberDto>(_mapper.ConfigurationProvider),
-         userParams.pageNumber, userParams.PageSize);
+         userParams.PageNumber, userParams.PageSize);
     }
 
 

@@ -44,7 +44,7 @@ public class LikesRepository : ILikesRepository
             Id = u.Id
         });
 
-        return await PagedList<LikeDto>.CreateAsync(likedUsers, likesParams.pageNumber, likesParams.PageSize);
+        return await PagedList<LikeDto>.CreateAsync(likedUsers, likesParams.PageNumber, likesParams.PageSize);
     }
 
     public async Task<AppUser> GetUserWithLikes(int userId)
