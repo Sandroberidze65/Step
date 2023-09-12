@@ -28,6 +28,7 @@ public class Seed
             foreach(var role in roles){
                 await roleManager.CreateAsync(role);
             }
+            user.Photos.First().IsApproved = true;
             user.UserName = user.UserName.ToLower();
 
             await userManager.CreateAsync(user, "Pa$$w0rd");

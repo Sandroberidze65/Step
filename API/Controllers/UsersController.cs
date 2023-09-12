@@ -41,7 +41,8 @@ public class UsersController : BaseApiController
     [HttpGet("{username}")]
     public async Task<ActionResult<MemberDto>> GetUser(string username)
     {
-        return  await _uow.UserRepository.GetMemberAsync(username);
+        var currentUser = User.GetUsername();
+        return  await _uow.UserRepository.GetMemberAsync(username, isCurrentUser: currentUser == username);
     }
 
     [HttpPut]
@@ -66,8 +67,6 @@ public class UsersController : BaseApiController
             Url = result.SecureUrl.AbsoluteUri,
             PublicId = result.PublicId
         };
-
-        if(user.Photos.Count == 0) photo.IsMain = true;
 
         user.Photos.Add(photo);
 
@@ -98,7 +97,7 @@ public class UsersController : BaseApiController
     [HttpDelete("delete-photo/{photoId}")]
     public async Task<ActionResult> DeletePhoto(int photoId){
         var user = await _uow.UserRepository.GetUserByNameAsync(User.GetUsername());
-        var photo = user.Photos.FirstOrDefault(x=>x.Id == photoId);
+        var photo = await _uow.PhotoRepository.GetPhotoById(photoId);
 
         if (photo == null) return NotFound();
 
