@@ -8,16 +8,24 @@ using Microsoft.EntityFrameworkCore;
 namespace API.Data;
 public class Seed
 {
-    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager){
-        if(await userManager.Users.AnyAsync()) return;
+    public static async Task ClearConnections(DataContext context)
+    {
+        context.Connections.RemoveRange(context.Connections);
+        await context.SaveChangesAsync();
+    }
 
-        var userData = await File.ReadAllTextAsync("Data/UserSeedData.json");
+    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+    {
+        if (await userManager.Users.AnyAsync()) return;
 
-        var options = new JsonSerializerOptions{PropertyNameCaseInsensitive = true};
+        var userData = await File.ReadAllTextAsync("Data/UserSeedData.Json");
 
-        var users = JsonSerializer.Deserialize<List<AppUser>>(userData,options);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        foreach(var user in users){
+        var users = JsonSerializer.Deserialize<List<AppUser>>(userData, options);
+
+        foreach (var user in users)
+        {
 
             var roles = new List<AppRole>{
                 new AppRole{Name = "Member"},
@@ -25,23 +33,32 @@ public class Seed
                 new AppRole{Name = "Moderator"},
             };
 
-            foreach(var role in roles){
-                await roleManager.CreateAsync(role);
+            foreach (var role in roles)
+            {
+                var roleExists = await roleManager.RoleExistsAsync(role.Name);
+                if (!roleExists)
+                {
+                    await roleManager.CreateAsync(role);
+                }
+                
             }
             user.Photos.First().IsApproved = true;
             user.UserName = user.UserName.ToLower();
+            user.Created = DateTime.SpecifyKind(user.Created, DateTimeKind.Utc);
+            user.LastActive = DateTime.SpecifyKind(user.LastActive, DateTimeKind.Utc);
 
             await userManager.CreateAsync(user, "Pa$$w0rd");
             await userManager.AddToRoleAsync(user, "Member");
 
         }
 
-        var admin = new AppUser{
+        var admin = new AppUser
+        {
             UserName = "admin"
         };
 
         await userManager.CreateAsync(admin, "Pa$$w0rd");
-        await userManager.AddToRolesAsync(admin, new[] {"Admin", "Moderator"});
+        await userManager.AddToRolesAsync(admin, new[] { "Admin", "Moderator" });
 
     }
 }
